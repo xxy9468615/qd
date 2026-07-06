@@ -1,0 +1,142 @@
+{% import "utils.html" as utils %}
+<form method="POST" action="/user/{{ userid }}/database">
+  <h2 class="text-center">数据库管理</h2>
+  <hr>
+  <script src="{{ static_url('components/blueimp-md5/js/md5.js') }}"></script>
+  <script src="{{ static_url('components/download.js') }}"></script>
+  <script src="{{ static_url('components/js-base64/base64.js') }}"></script>
+  <div id="run-result"></div>
+
+  <div>
+      <input type="file" id="recfile" />
+  </div>
+
+  <div class="form-group">
+    <label class="control-label" for="note" ><font color='red'>必须输入账号密码验证！！！</font></label>
+    <div>
+    <label class="control-label" for="note">邮箱</label>
+    </div>
+    <input type="text" class="form-control" name="adminmail" value="" id="adminmail" placeholder="邮箱">
+    <label class="control-label" for="note">密码</label>
+    <input type='password' class="form-control" name="adminpwd" value="" id="adminpwd" placeholder="密码">
+  </div>
+
+  <div class="text-right">
+    {% if adminflg %}
+    <button id="backup" name="backupbtn" type="submit" data-loading-text="loading..." class="btn btn-primary">备份数据库</button>
+    {% endif %}
+    <button id="backuptpls" name="backuptplsbtn" type="submit" data-loading-text="loading..." class="btn btn-primary">备份</button>
+    <button id="recoverytpls" name="recoverytplsbtn" type="submit" data-loading-text="loading..." class="btn btn-primary">恢复</button>
+  </div>
+
+  {{ utils.submit_loading() }}
+
+  <script>
+    $(function () {
+      $('#recoverytpls').on('click', function () {
+        var fileObj = document.getElementById("recfile").files[0];
+        if (fileObj == undefined) {
+          $('#run-result').html('<h1 class="alert alert-danger text-center">恢复失败</h1><div class="well">请选择文件</div>').show()
+          $('#recoverytpls').button('reset');
+          return false;
+        } else {
+          var env = new FormData();
+          env.append("adminpwd", md5($('#adminpwd')[0].value));
+          env.append("adminmail", $('#adminmail')[0].value);
+          env.append("recoverytplsbtn", "");
+          env.append("recfile", fileObj);
+          // 判断文件类型
+          var fileName = fileObj.name;
+          var suffixIndex = fileName.lastIndexOf(".");
+          var suffix = fileName.substring(suffixIndex + 1).toUpperCase();
+          if (suffix == 'DB'){
+            var r = confirm("请确认用于恢复的文件为SQLite数据库文件, 是否继续?");
+            if (r == false) {
+              $('#recoverytpls').button('reset');
+              return false;
+            }
+            var r = confirm("恢复SQLite数据库将覆盖原始数据库, 是否覆盖?");
+            if (r == false) {
+              $('#recoverytpls').button('reset');
+              return false;
+            }
+          }
+          var $this = $('#recoverytpls')
+          $this.button('loading');
+          $.ajax("/user/{{ userid }}/database", {
+            type: 'POST',
+            data: env,
+            processData: false,
+            contentType: false,
+            cache: false,
+            timeout: 600000,
+          })
+            .fail(function (jxhr) {
+              var msg = jxhr.getResponseHeader('error-message');
+              if (msg) {
+                msg = Base64.decode(msg);
+                $('#run-result').html('<h1 class="alert alert-danger text-center">恢复失败</h1><div class="well"></div>').show().find('div').text(msg);
+                return;
+              }
+              $('#run-result').html('<h1 class="alert alert-danger text-center">恢复失败</h1><div class="well"></div>').show().find('div').text(decodeURIComponent(escape(jxhr.statusText)));
+            })
+            .done(function (data) {
+              $('#run-result').html(data).show()
+            })
+            .always(function () {
+              $this.button('reset');
+            });
+          return false;
+        }
+      });
+    })
+
+  </script>
+
+<script>
+  $(function() {
+    // run test
+    $('#backuptpls,#backup').on('click', function() {
+      var env = {};
+      env["adminpwd"] = md5($('#adminpwd')[0].value);
+      env["adminmail"] = $('#adminmail')[0].value;
+      if (this.name == "backupbtn"){
+        env['backupbtn'] = "";
+      }else{
+        env['backuptplsbtn'] = "";
+      }
+      var $this = $(this);
+      $this.button('loading');
+      $.ajax("/user/{{ userid }}/database", {
+        type: 'POST',
+        data: env,
+        xhrFields: {
+          responseType: "arraybuffer",
+        },
+      })
+      .fail(function(jxhr) {
+        var msg = jxhr.getResponseHeader('error-message');
+        if (msg) {
+          msg = Base64.decode(msg);
+          $('#run-result').html('<h1 class="alert alert-danger text-center">备份失败</h1><div class="well"></div>').show().find('div').text(msg);
+          return;
+        }
+        $('#run-result').html('<h1 class="alert alert-danger text-center">备份失败</h1><div class="well"></div>').show().find('div').text(decodeURIComponent(escape(jxhr.statusText)));
+      })
+      .done(function(response, status, xhr) {
+        AjaxPosSaveFile(response, status, xhr)
+        $('#run-result').html('<h1 class="alert alert-success text-center">备份成功</h1>').show()
+      })
+      .always(function() {
+        $this.button('reset');
+      });
+
+      return false;
+    });
+  })
+</script>
+
+</form>
+
+
+

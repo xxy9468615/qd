@@ -1,0 +1,158 @@
+{% import "utils.html" as utils %}
+<form method="POST" action="/user/{{ userid }}/manage">
+  <h2 class="text-center">用户列表</h2>
+  <hr>
+
+  <div id="run-result">
+    {% if flg=='success' or flg=='danger' %}
+      {% include "utils_run_result.html" %}
+    {% endif %}
+  </div>
+
+  {% if adminflg %}
+  <div id="userlist">
+    <table id="user_table" class="table table-hover tablesorter">
+      <thead>
+        <tr>
+          <th></th>
+          <th>用户邮箱</th>
+          <th>状态</th>
+          <th>创建时间</th>
+          <th>最后登陆时间</th>
+          <th>功能</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users | sort(reverse=True, attribute="ctime") %}
+        <tr>
+          <td>
+            <label>
+              <input type="checkbox"  name="{{user.id}}" class="userlist-chkbox">
+            </label>
+          </td>
+          <td>{{ user.email }}{% if user.role == 'admin' %}<br>[管理员]{% endif %}</td>
+          <td>
+              {{ user.status }}<br>
+              {% if user.email_verified %} 已验证邮箱
+              {% else %} 未验证邮箱
+              {% endif %}
+          </td>
+          <td>{{ format_date(user.ctime)}}</td>
+          <td>{{ format_date(user.atime)}}{% if user.aip %}<br>IP: {{ varbinary2ip(user.aip) }}{% endif %}</td>
+          <td>
+            <span type="span" class="btn btn-default">
+              <a data-load-method="GET" class="modal_load" href="/user/{{user.id}}/setnewpwd" title="修改密码">改密
+              </a>
+            </span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="form-group">
+    <label class="control-label" for="note" ><font color='red'>必须输入账号密码验证！！！</font></label>
+    <div>
+    <label class="control-label" for="note">管理员邮箱</label>
+    </div>
+    <input type="text" class="form-control" name="adminmail" value="" id="adminmail" placeholder="必须输入账号密码验证">
+    <label class="control-label" for="note">管理员密码</label>
+    <input type='password' class="form-control" name="adminpwd" value="" id="adminpwd" placeholder="必须输入账号密码验证">
+  </div>
+
+  <div class="text-right">
+    <button id="ban" name="banbtn" type="submit" data-loading-text="loading..." class="btn btn-primary">禁用</button>
+    <button id="activate" name="activatebtn" type="submit" data-loading-text="loading..." class="btn btn-primary">启用</button>
+    <button id="verify" name="verifybtn" type="submit" data-loading-text="loading..." class="btn btn-primary">验证</button>
+    <button id="del" name="delbtn" type="submit" data-loading-text="loading..." class="btn btn-primary">删除</button>
+  </div>
+
+  {% else %}
+  <div style="text-align:center"> 非管理员,不可查看 </div>
+  {% endif %}
+
+  <script>
+    $(function() {
+      $('#ban,#activate,#verify,#del').on('click', function() {
+        var env = {};
+        chkflg = false;
+        tmp = document.querySelectorAll('.userlist-chkbox').forEach(function(el){
+            if (el.checked) {
+              env[el.name] = 'on'
+              chkflg = true;
+            }
+          });
+        if (!chkflg){
+          $('#run-result').html("<h1 class=\"alert alert-danger text-center\">错误</h1><div><pre>请至少选择一个成员</pre></div>").show();
+          return false;
+        }
+        env["adminpwd"] = md5($('#adminpwd')[0].value);
+        env["adminmail"] = $('#adminmail')[0].value;
+        env[this.name] = ''
+
+        var $this = $(this);
+        $this.button('loading');
+        $.ajax("/user/{{ userid }}/manage", {
+          type: 'POST',
+          data: env,
+        })
+        .done(function(response, status, xhr) {
+          if (response.indexOf('alert alert-success text-center') > -1){
+            refresh_modal_load("/user/{{ userid }}/manage?flg=success&title=操作成功")
+          }else{
+            $('#run-result').html(response).show()
+          }
+        })
+        .always(function() {
+          $this.button('reset');
+        });
+
+        return false;
+      });
+    })
+  </script>
+
+  <script>
+    $(function () {
+      // Extend the themes to change any of the default class names
+      $.tablesorter.themes.bootstrap = {
+        // these classes are added to the table. To see other table classes available,
+        // look here: http://getbootstrap.com/css/#tables
+        table: 'table table-hover',
+        caption: 'caption',
+        // header class names
+        header: 'bootstrap-header', // give the header a gradient background (theme.bootstrap_2.css)
+        sortNone: '',
+        sortAsc: '',
+        sortDesc: '',
+        active: '', // applied when column is sorted
+        hover: '', // custom css required - a defined bootstrap style may not override other classes
+        // icon class names
+        icons: '', // add "bootstrap-icon-white" to make them white; this icon class is added to the <i> in the header
+        iconSortNone: 'bootstrap-icon-unsorted', // class name added to icon when column is not sorted
+        iconSortAsc: 'glyphicon glyphicon-chevron-up', // class name added to icon when column has ascending sort
+        iconSortDesc: 'glyphicon glyphicon-chevron-down', // class name added to icon when column has descending sort
+        filterRow: '', // filter row class; use widgetOptions.filter_cssFilter for the input/select element
+        footerRow: '',
+        footerCells: '',
+        even: '', // even row zebra striping
+        odd: ''  // odd row zebra striping
+      };
+      $("#user_table").tablesorter({
+        theme: "bootstrap",
+        sortList: [[3, 1]],
+        headers: {
+          0: { sorter: false, parser: false },
+          5: { sorter: false, parser: false }
+        },
+        headerTemplate: '{content} {icon}', // needed to add icon for jui theme
+        widgets: ['uitheme']
+      });
+
+    })
+  </script>
+
+  {{ utils.submit_loading() }}
+</form>
+
