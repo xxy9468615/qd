@@ -69,7 +69,4 @@ EXPOSE $PORT/tcp
 # timezone
 ENV TZ=CST-8
 
-# 添加挂载点
-VOLUME ["/usr/src/app/config"]
-
 CMD ["sh","-c","python /usr/src/app/run.py"]
