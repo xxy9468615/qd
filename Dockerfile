@@ -7,6 +7,7 @@ LABEL org.opencontainers.image.source=https://github.com/qd-today/qd
 
 ADD ssh/qd_fetch /root/.ssh/id_rsa
 ADD ssh/qd_fetch.pub /root/.ssh/id_rsa.pub
+ADD requirements.txt /tmp/requirements.txt
 WORKDIR /usr/src/app
 
 # QD && Pip install modules
@@ -20,6 +21,7 @@ RUN sed -i 's/mirrors.ustc.edu.cn/dl-cdn.alpinelinux.org/g' /etc/apk/repositorie
     sleep $num && \
     git clone --depth 1 git@gitee.com:qd-today/qd.git /gitclone_tmp && \
     yes | cp -rf /gitclone_tmp/. /usr/src/app && \
+    cp /tmp/requirements.txt /usr/src/app/requirements.txt && \
     rm -rf /gitclone_tmp && \
     chmod +x /usr/src/app/update.sh && \
     ln -s /usr/src/app/update.sh /bin/update && \
