@@ -91,6 +91,9 @@ workspace.xml
 .idea/workspace.xml
 # Environments
 .env
+.env.*
+!.env.example
+!.env.railway.example
 .venv
 env/
 venv/
@@ -130,6 +133,10 @@ qd.rar
 压缩.bat
 .ssh/
 database*.db
+qiandao.db
+qd.db
+*.sqlite3
+*.sqlite
 local_config.py
 .virtual_documents/
 .gitkeep
