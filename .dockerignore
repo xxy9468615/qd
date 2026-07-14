@@ -1,0 +1,12 @@
+# 不进镜像的文件
+ssh/
+.git/
+__pycache__/
+*.pyc
+*.pyo
+.dccache
+*.db
+config/
+har-templates/
+签到清单.md
+.gitignore

@@ -194,3 +194,6 @@ cache
 
 alembic.ini
 .hintrc
+
+# 自定义签到模板（含站点变量/账号信息，本地使用不入库）
+har-templates/
