@@ -197,3 +197,6 @@ alembic.ini
 
 # 自定义签到模板（含站点变量/账号信息，本地使用不入库）
 har-templates/
+
+# 项目说明文档（所有项目均不提交到 GitHub）
+CLAUDE.md
