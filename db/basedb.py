@@ -30,7 +30,7 @@ if config.db_type == 'mysql':
     engine_url = f"mysql+aiomysql://{user}:{passwd}@{host}:{port}/{database}?auth_plugin={auth_plugin}"
     connect_args = {}
     if config.mysql.ssl == "true":
-        connect_args["ssl"] = {}
+        connect_args["ssl"] = True
     engine = create_async_engine(engine_url,
                                  connect_args=connect_args,
                                  logging_name=config.sqlalchemy.logging_name,
