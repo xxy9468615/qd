@@ -28,7 +28,11 @@ if config.db_type == 'mysql':
     passwd = config.mysql.passwd
     auth_plugin = config.mysql.auth_plugin
     engine_url = f"mysql+aiomysql://{user}:{passwd}@{host}:{port}/{database}?auth_plugin={auth_plugin}"
+    connect_args = {}
+    if config.mysql.ssl == "true":
+        connect_args["ssl"] = {}
     engine = create_async_engine(engine_url,
+                                 connect_args=connect_args,
                                  logging_name=config.sqlalchemy.logging_name,
                                  pool_size=config.sqlalchemy.pool_size,
                                  max_overflow=config.sqlalchemy.max_overflow,

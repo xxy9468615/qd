@@ -81,6 +81,7 @@ class mysql:
     auth_plugin = parse_qs(mysql_url.query).get("auth_plugin", [""])[
         0
     ]  # auth_plugin, 默认为空, 可修改为'mysql_native_password','caching_sha2_password'
+    ssl = parse_qs(mysql_url.query).get("ssl", [""])[0]  # SSL 连接, 设为 'true' 启用 TLS/SSL
 
 
 ## Sqlite3 设置
