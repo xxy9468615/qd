@@ -440,16 +440,16 @@ class BatchWorker(BaseWorker):
             if tasks is not None and len(tasks) > 0:
                 for task in tasks:
                     running.append(asyncio.ensure_future(self.do(task)))
-                    if len(running) >= 50:
+                    if len(running) >= 5:
                         logger_worker.debug(
                             'scaned %d task, waiting...', len(running))
-                        result = await asyncio.gather(*running[:10])
+                        result = await asyncio.gather(*running[:5])
                         for each in result:
                             if each:
                                 success += 1
                             else:
                                 failed += 1
-                        running = running[10:]
+                        running = running[5:]
                 logger_worker.debug('scaned %d task, waiting...', len(running))
                 result = await asyncio.gather(*running)
                 for each in result:
@@ -461,6 +461,8 @@ class BatchWorker(BaseWorker):
                 await self.push_batch()
         except Exception as e:
             logger_worker.exception(e)
+        finally:
+            await async_session.remove()
         return (success, failed)
 
 
