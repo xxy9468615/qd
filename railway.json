@@ -9,13 +9,6 @@
     "restartPolicyType": "ON_FAILURE",
     "numReplicas": 1,
     "healthcheckPath": "/",
-    "healthcheckTimeout": 100,
-    "volumes": [
-      {
-        "name": "qd-config",
-        "mountPath": "/usr/src/app/config",
-        "directory": "/"
-      }
-    ]
+    "healthcheckTimeout": 100
   }
 }
