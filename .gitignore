@@ -93,7 +93,6 @@ workspace.xml
 .env
 .env.*
 !.env.example
-!.env.railway.example
 .venv
 env/
 venv/
